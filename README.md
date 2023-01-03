@@ -1,4 +1,4 @@
-##Running
+## Running
 ```sh
 1. Run the Postgres database "kijun" at port 5432.
 2. go run main.go
@@ -6,7 +6,7 @@
     * Example: http://localhost:3000/whoami/jduesterrr
 ```
 
-##Testing
+## Testing
 ```sh
 go test
 ```
