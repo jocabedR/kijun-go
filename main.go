@@ -25,34 +25,35 @@ type User struct {
 	Registration_date string
 }
 
-func getUserByUsername(c *gin.Context) {
-
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+func dbConnection() *sql.DB {
+	conn := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := sql.Open("postgres", conn)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return nil
+	}
+	return db
+}
+
+func getUserByUsername(c *gin.Context) {
+	db := dbConnection()
+	if db == nil {
+		fmt.Println("Cannot connect to PostgreSQL!")
+		db.Close()
 	}
 	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Successfully connected!")
-
 	usernamePath := c.Param("username")
-	rows, err := db.Query("SELECT id, username, name, birth_date, registration_date FROM users WHERE username = $1", usernamePath)
-
+	rows, _ := db.Query("SELECT id, username, name, birth_date, registration_date FROM users WHERE username = $1", usernamePath)
 	defer rows.Close()
 
 	var id int
 	var username, name, birth_date, registration_date string
 	var user_unmarshal User
-
 	for rows.Next() {
-		err = rows.Scan(&id, &username, &name, &birth_date, &registration_date)
+		rows.Scan(&id, &username, &name, &birth_date, &registration_date)
 		user_unmarshal.Id = id
 		user_unmarshal.Username = username
 		user_unmarshal.Name = name
@@ -66,10 +67,14 @@ func getUserByUsername(c *gin.Context) {
 	}
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found"})
 }
-
 func main() {
-	router := gin.Default()
-	router.GET("/whoiam/:username", getUserByUsername)
-
+	router := setupRouter()
 	router.Run("localhost:3000")
+}
+
+func setupRouter() *gin.Engine {
+	router := gin.Default()
+	router.GET("/whoami/:username", getUserByUsername)
+
+	return router
 }
