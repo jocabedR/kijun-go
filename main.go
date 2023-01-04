@@ -45,9 +45,6 @@ func dbConnection() {
 
 func getUserByUsername(c *gin.Context) {
 	db := DB
-	if db == nil {
-		fmt.Println("database connection failed")
-	}
 
 	usernamePath := c.Param("username")
 	rows, _ := db.Query("SELECT id, username, name, birth_date, registration_date FROM users WHERE username = $1", usernamePath)
@@ -73,9 +70,13 @@ func getUserByUsername(c *gin.Context) {
 }
 func main() {
 	dbConnection()
-	router := setupRouter()
-	router.Run("localhost:3000")
-
+	if DB == nil {
+		fmt.Println("Database connection failed.")
+	} else {
+		fmt.Println("Sucessful database connection!")
+		router := setupRouter()
+		router.Run("localhost:3000")
+	}
 }
 
 func setupRouter() *gin.Engine {
