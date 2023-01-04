@@ -54,7 +54,9 @@ func getUserByUsername(c *gin.Context) {
 	var username, name, birth_date, registration_date string
 	var user_unmarshal User
 	for rows.Next() {
-		rows.Scan(&id, &username, &name, &birth_date, &registration_date)
+		if err := rows.Scan(&id, &username, &name, &birth_date, &registration_date); err != nil {
+			fmt.Println(err)
+		}
 		user_unmarshal.Id = id
 		user_unmarshal.Username = username
 		user_unmarshal.Name = name
@@ -75,7 +77,10 @@ func main() {
 	} else {
 		fmt.Println("Sucessful database connection!")
 		router := setupRouter()
-		router.Run("localhost:3000")
+		err := router.Run("localhost:3000")
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
