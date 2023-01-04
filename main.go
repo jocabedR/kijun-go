@@ -34,16 +34,18 @@ func dbConnection() *sql.DB {
 		fmt.Println(err)
 		return nil
 	}
+
+	db.SetMaxOpenConns(10)
+	db.SetConnMaxIdleTime(1)
+
 	return db
 }
 
 func getUserByUsername(c *gin.Context) {
 	db := dbConnection()
 	if db == nil {
-		fmt.Println("Cannot connect to PostgreSQL!")
-		db.Close()
+		fmt.Println("database connection failed")
 	}
-	defer db.Close()
 
 	usernamePath := c.Param("username")
 	rows, _ := db.Query("SELECT id, username, name, birth_date, registration_date FROM users WHERE username = $1", usernamePath)
