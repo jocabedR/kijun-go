@@ -25,25 +25,26 @@ type User struct {
 	Registration_date string
 }
 
-func dbConnection() *sql.DB {
+var DB *sql.DB
+
+func dbConnection() {
 	conn := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 	db, err := sql.Open("postgres", conn)
 	if err != nil {
 		fmt.Println(err)
-		return nil
 	}
 
 	db.SetMaxOpenConns(10)
 	db.SetConnMaxIdleTime(1)
 	db.SetConnMaxLifetime(5)
 
-	return db
+	DB = db
 }
 
 func getUserByUsername(c *gin.Context) {
-	db := dbConnection()
+	db := DB
 	if db == nil {
 		fmt.Println("database connection failed")
 	}
@@ -71,8 +72,10 @@ func getUserByUsername(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found"})
 }
 func main() {
+	dbConnection()
 	router := setupRouter()
 	router.Run("localhost:3000")
+
 }
 
 func setupRouter() *gin.Engine {
